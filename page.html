@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Dock Portal</title>
+    
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 1rem; justify-content: center; animation: fadeIn 0.5s ease;">
+
+    <select id="publicThemeSelect" class="public-theme-select">
+        <option value="light">☀️ Light</option>
+        <option value="dark">🌙 Dark</option>
+        <option value="system">💻 System</option>
+    </select>
+
+    <div class="public-container">
+        <img src="" class="profile-pic" id="pubImage" style="width: 110px; height: 110px; border-radius: 30px;">
+        <h1 class="profile-name" id="pubName"></h1>
+        <p class="profile-bio" id="pubBio"></p>
+        <div style="width: 100%; display: flex; flex-direction: column;" id="pubLinks"></div>
+        
+        <div style="margin-top: 3rem; font-size: 0.8rem; color: var(--text-secondary);">
+            Built with <a href="index.html" style="color: var(--primary-accent); text-decoration: none; font-weight: bold;">Link Dock</a>
+        </div>
+    </div>
+
+    <script>
+        // === THEME ENGINE ===
+        function applyTheme(theme) {
+            if (theme === 'system') {
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        }
+        const savedTheme = localStorage.getItem('portal_theme') || 'system';
+        applyTheme(savedTheme);
+        document.getElementById('publicThemeSelect').value = savedTheme;
+        
+        document.getElementById('publicThemeSelect').addEventListener('change', (e) => {
+            localStorage.setItem('portal_theme', e.target.value); 
+            applyTheme(e.target.value);
+        });
+
+        // === ICON ENGINE ===
+        function getFaviconImg(urlStr) {
+            try { return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(urlStr)}&size=128`; } 
+            catch(e) { return "https://ui-avatars.com/api/?name=Link&background=f3f4f6&color=6b7280"; }
+        }
+
+        // === RENDER ENGINE ===
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const data = urlParams.get('data');
+            
+            if (!data) {
+                document.querySelector('.public-container').innerHTML = '<h2 style="margin-bottom:1rem;">Profile Not Found</h2><p style="color:var(--text-secondary); text-align:center;">No data parameter was found in the URL.</p>';
+                return;
+            }
+
+            try {
+                const decoded = JSON.parse(decodeURIComponent(atob(data)));
+                let profile = { name: "User", bio: "", image: "", links: [] };
+                
+                if (Array.isArray(decoded)) profile.links = decoded; 
+                else profile = { ...profile, ...decoded };
+
+                document.title = `${profile.name} - Portal`;
+                document.getElementById('pubName').innerText = profile.name;
+                document.getElementById('pubBio').innerText = profile.bio;
+                document.getElementById('pubImage').src = profile.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=111827&color=fff&size=200&bold=true`;
+                
+                const pLinks = document.getElementById('pubLinks');
+                profile.links.forEach((link, index) => {
+                    if(link.active) {
+                        const a = document.createElement('a'); 
+                        a.className = 'phone-link'; 
+                        a.href = link.url; 
+                        a.target = '_blank';
+                        a.style.animationDelay = `${index * 0.1}s`;
+                        a.innerHTML = `
+                            <div class="node-icon-wrapper" style="width:36px; height:36px; font-size:1.1rem; margin-right:12px; flex-shrink:0;">
+                                <img src="${getFaviconImg(link.url)}" style="width:100%; height:100%; border-radius:inherit; object-fit:cover;" onerror="this.style.display='none'">
+                            </div>
+                            <span>${link.title}</span>
+                        `;
+                        pLinks.appendChild(a);
+                    }
+                });
+            } catch(e) {
+                document.querySelector('.public-container').innerHTML = '<h2 style="color:var(--danger);">Error Decoding Profile</h2>';
+            }
+        });
+    </script>
+</body>
+</html>
