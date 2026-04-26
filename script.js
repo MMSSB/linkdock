@@ -12,8 +12,8 @@ applyTheme(savedTheme);
 
 // === APP STATE ===
 let profile = {
-    name: "0xBuilder.eth",
-    bio: "Architecting the decentralized web.",
+    name: "Link Dock",
+    bio: "",
     image: "",
     links: [
         // { id: "1", title: "Primary Portfolio", url: "https://portfolio.eth.link", active: true },
