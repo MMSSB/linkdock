@@ -33,7 +33,8 @@ Link Dock is incredibly lightweight and built strictly with native web technolog
 
 ```text
 link-dock/
-├── index.html       # The main builder and public viewer logic
+├── index.html       # The main builder
+├── page.html        # public viewer logic
 ├── settings.html    # UI configuration (Dark/Light mode)
 ├── about.html       # System architecture info
 ├── style.css        # Universal stylesheet and responsive layouts
