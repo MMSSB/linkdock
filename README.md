@@ -4,7 +4,7 @@
 
 Instead of relying on a traditional database or backend server to store your profile data, Link Dock compresses your entire configuration (links, bio, profile name, and UI state) into a secure, base64-encoded string embedded directly inside your custom URL. **Your URL *is* your database.**
 
-![Link Dock Preview](https://via.placeholder.com/800x400.png?text=Link+Dock+Preview+Image)
+![Link Dock Preview](images/screenshot.png)
 
 ## ✨ Features
 
