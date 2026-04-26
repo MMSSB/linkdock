@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Settings - LinkPortal</title>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+    <script src="settings.js" defer></script>
+</head>
+<body>
+    <div class="modal-overlay" id="customModal"><div class="modal-box"><div class="modal-header"><h3 class="modal-title" id="modalTitle"></h3><button class="close-btn" onclick="closeModal()"><i class="ph ph-x"></i></button></div><div id="modalInputs"><input type="text" class="modal-input" id="nodeTitle"><input type="url" class="modal-input" id="nodeUrl"></div><div id="modalUrlResult" style="display:none;"></div><div id="modalActionSheet" style="display:none;"></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-confirm" id="modalBtnConfirm"></button></div></div></div>
+
+    <div class="app-layout">
+        <aside class="sidebar desktop-only">
+            <div class="sidebar-header"><i class="fa-solid fa-link" style="color:var(--primary-accent);"></i> PORTAL</div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="ph ph-squares-four"></i> Dashboard</a>
+                <a href="settings.html" class="nav-item active"><i class="ph ph-gear"></i> Settings</a>
+                <a href="about.html" class="nav-item"><i class="ph ph-info"></i> About</a>
+            </div>
+            <button class="btn-import" onclick="openModal('import')"><i class="ph ph-download-simple"></i> IMPORT DATA</button>
+        </aside>
+
+        <header class="mobile-header mobile-only">
+            <div style="font-size: 1.2rem; font-weight: 800;"><i class="ph ph-gear"></i> Style Settings</div>
+        </header>
+
+        <main class="builder-area">
+            <h1 style="margin-bottom: 1rem; font-weight: 800; font-size: 2rem;">Appearance</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Customize your builder interface.</p>
+            
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+                <label style="display: flex; align-items: center; gap: 12px; font-weight: 600; cursor: pointer; font-size: 1.1rem; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); transition: 0.2s;">
+                    <input type="radio" name="theme" value="light" style="width: 20px; height: 20px;"> <i class="ph ph-sun" style="font-size: 1.4rem;"></i> Light Mode
+                </label>
+                <label style="display: flex; align-items: center; gap: 12px; font-weight: 600; cursor: pointer; font-size: 1.1rem; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); transition: 0.2s;">
+                    <input type="radio" name="theme" value="dark" style="width: 20px; height: 20px;"> <i class="ph ph-moon" style="font-size: 1.4rem;"></i> Dark Mode
+                </label>
+                <label style="display: flex; align-items: center; gap: 12px; font-weight: 600; cursor: pointer; font-size: 1.1rem; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); transition: 0.2s;">
+                    <input type="radio" name="theme" value="system" style="width: 20px; height: 20px;"> <i class="ph ph-laptop" style="font-size: 1.4rem;"></i> System Default
+                </label>
+            </div>
+        </main>
+
+        <nav class="mobile-bottom-nav mobile-only">
+            <a href="index.html" class="nav-tab"><i class="ph ph-squares-four" style="font-size: 1.4rem;"></i> HOME</a>
+            <a href="#" class="nav-tab" onclick="openModal('import')"><i class="ph ph-download-simple" style="font-size: 1.4rem;"></i> IMPORT</a>
+            <a href="settings.html" class="nav-tab active"><i class="ph ph-gear" style="font-size: 1.4rem;"></i> STYLE</a>
+            <a href="about.html" class="nav-tab"><i class="ph ph-info" style="font-size: 1.4rem;"></i> ABOUT</a>
+        </nav>
+    </div>
+</body>
+</html>
