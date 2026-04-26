@@ -12,11 +12,11 @@ applyTheme(savedTheme);
 
 // === APP STATE ===
 let profile = {
-    name: "",
-    bio: "",
+    name: "0xBuilder.eth",
+    bio: "Architecting the decentralized web.",
     image: "",
     links: [
-        { id: "1", title: "Link Dock", url: "https://mmssb.github.io/linkdock", active: true },
+        // { id: "1", title: "Primary Portfolio", url: "https://portfolio.eth.link", active: true },
         // { id: "2", title: "Mirror Blog", url: "https://mirror.xyz", active: true },
         // { id: "3", title: "NFT Gallery", url: "https://opensea.io", active: false }
     ]
@@ -112,24 +112,44 @@ function initPreviewState() {
 }
 
 // === ROBUST FAVICON CASCADE ENGINE ===
+// Attempts: 1. Exact Page -> 2. Domain API -> 3. Root .ico -> 4. Local images/logo.png -> 5. Letter Avatar
 function getNodeIconHtml(urlStr, titleStr) {
     let domain = "";
-    try { domain = new URL(urlStr).hostname; } catch(e) { domain = "link"; }
+    let rootIco = "";
+    try { 
+        const u = new URL(urlStr);
+        domain = u.hostname;
+        rootIco = `${u.protocol}//${u.hostname}/favicon.ico`;
+    } catch(e) { 
+        domain = "link"; 
+    }
 
-    // 1. Google Favicon V2 (Tries to get the exact page URL icon first)
     const pageFavicon = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(urlStr)}&size=128`;
-
-    // 2. Classic Google S2 (Safe fallback for just the domain)
-    const domainFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-
-    // 3. UI Avatars (Absolute failsafe if the site has no icons at all)
+    const domainFavicon = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+    const defaultLogo = `images/logo.png`;
     const letterAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(titleStr || 'L')}&background=f3f4f6&color=6b7280&bold=true`;
 
-    // This uses an inline onerror cascade to intelligently fall back if the image breaks
     return `<img src="${pageFavicon}" 
                  alt="icon"
                  style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" 
-                 onerror="if(this.src !== '${domainFavicon}') { this.src = '${domainFavicon}'; } else { this.onerror=null; this.src='${letterAvatar}'; }">`;
+                 onerror="
+                    if (!this.dataset.triedDomain) {
+                        this.dataset.triedDomain = 'true';
+                        this.src = '${domainFavicon}';
+                    } else if (!this.dataset.triedRoot) {
+                        this.dataset.triedRoot = 'true';
+                        this.src = '${rootIco}';
+                    } else if (!this.dataset.triedDefault) {
+                        this.dataset.triedDefault = 'true';
+                        this.src = '${defaultLogo}';
+                    } else if (!this.dataset.triedAvatar) {
+                        this.dataset.triedAvatar = 'true';
+                        this.src = '${letterAvatar}';
+                    } else {
+                        this.onerror = null;
+                        this.style.display = 'none';
+                    }
+                 ">`;
 }
 
 // === MAIN MODAL ENGINE ===
@@ -143,7 +163,6 @@ window.openModal = function(mode, id = null, copyData = null) {
     const confirmBtn = document.getElementById('modalBtnConfirm');
     const actionSheet = document.getElementById('modalActionSheet');
     
-    // Reset standard visibility
     inputCont.style.display = 'none';
     if(resultBox) resultBox.style.display = 'none';
     if(actionSheet) actionSheet.style.display = 'none';
@@ -327,11 +346,11 @@ function renderBuilder() {
             }
         });
 
-        // Insert Card HTML with properly formatted Favicons
+        // Builder Card HTML
         card.innerHTML = `
             <div class="drag-handle desktop-only"><i class="ph ph-dots-six-vertical"></i></div>
 
-            <div class="node-icon-wrapper">
+            <div class="node-icon-wrapper" style="overflow:hidden;">
                 ${getNodeIconHtml(link.url, link.title)}
             </div>
             <div class="node-info">
@@ -357,11 +376,11 @@ function renderBuilder() {
         `;
         builderList.appendChild(card);
 
-        // Render Phone Preview Link
+        // Phone Preview HTML
         if (link.active) {
             const btn = document.createElement('a'); btn.className = 'phone-link'; btn.href = link.url; btn.target = "_blank";
             btn.innerHTML = `
-                <div class="node-icon-wrapper" style="width:32px; height:32px; font-size:1rem; margin-right:12px; flex-shrink:0;">
+                <div class="node-icon-wrapper" style="width:32px; height:32px; flex-shrink:0; margin-right:12px; overflow:hidden;">
                     ${getNodeIconHtml(link.url, link.title)}
                 </div>
                 <span>${link.title}</span>
@@ -384,6 +403,7 @@ window.generatePortal = function() {
     window.openModal('deploy', null, finalUrl);
 };
 
+// === PUBLIC VIEWER RENDERER ===
 function renderPublicView() {
     document.getElementById('pubName').innerText = profile.name;
     document.getElementById('pubBio').innerText = profile.bio;
@@ -395,7 +415,7 @@ function renderPublicView() {
             const a = document.createElement('a'); a.className = 'phone-link'; a.href = link.url; a.target = '_blank';
             a.style.animationDelay = `${index * 0.1}s`;
             a.innerHTML = `
-                <div class="node-icon-wrapper" style="width:36px; height:36px; margin-right:12px; flex-shrink:0;">
+                <div class="node-icon-wrapper" style="width:36px; height:36px; flex-shrink:0; margin-right:12px; overflow:hidden;">
                     ${getNodeIconHtml(link.url, link.title)}
                 </div>
                 <span>${link.title}</span>
