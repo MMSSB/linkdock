@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Web3 Link Portal</title>
+    <style>
+        /* === MODERN CSS VARIABLES === */
+        :root {
+            /* Desktop Colors */
+            --bg-main: #f4f5f7;
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --black-btn: #000000;
+            --black-hover: #1f2937;
+            --primary-accent: #3b82f6;
+            --danger: #ef4444;
+            --danger-bg: #fee2e2;
+            --success: #10b981;
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+
+        body { background-color: var(--bg-main); color: var(--text-primary); overflow-x: hidden; overscroll-behavior-y: none; }
+        input { font-size: 16px !important; } /* Prevent iOS zoom */
+
+        /* === RESPONSIVE UTILITIES === */
+        .desktop-only { display: flex; }
+        .mobile-only { display: none !important; }
+
+        /* === ANIMATIONS === */
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+
+        /* === TOAST NOTIFICATION === */
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100%);
+            background: var(--black-btn); color: white; padding: 12px 24px; border-radius: 30px;
+            font-size: 0.9rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* === CUSTOM MODAL === */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 10000;
+            animation: fadeIn 0.2s ease-out; padding: 1rem;
+        }
+        .modal-box {
+            background: white; padding: 2rem; border-radius: var(--radius-md);
+            width: 100%; max-width: 450px; box-shadow: var(--shadow-md);
+            animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.4; }
+        .modal-input {
+            width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm); margin-bottom: 1.5rem; outline: none;
+        }
+        .modal-input:focus { border-color: var(--black-btn); }
+        .modal-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+        .btn-cancel { padding: 0.8rem 1.2rem; background: transparent; border: none; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+        .btn-confirm { padding: 0.8rem 1.2rem; background: var(--black-btn); color: white; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-confirm:hover { background: var(--black-hover); }
+
+        /* === DESKTOP LAYOUT (Default) === */
+        .app-layout { display: flex; min-height: 100vh; }
+
+        /* 1. SIDEBAR */
+        .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); flex-direction: column; padding: 2rem 1.5rem; position: sticky; top: 0; height: 100vh; z-index: 10; }
+        .sidebar-header { margin-bottom: 3rem; }
+        .sidebar-header h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; }
+        .sidebar-header span { font-size: 0.8rem; color: var(--text-secondary); }
+        .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+        .nav-item { padding: 0.75rem 1rem; border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .nav-item:hover { background: var(--bg-main); color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-main); color: var(--text-primary); }
+        .btn-import { background: var(--black-btn); color: white; padding: 1rem; text-align: center; border-radius: var(--radius-sm); font-weight: 600; letter-spacing: 1px; font-size: 0.85rem; cursor: pointer; margin-top: auto; border:none; transition: 0.2s; }
+        .btn-import:hover { background: var(--black-hover); }
+
+        /* 2. BUILDER AREA */
+        .builder-area { flex: 1; padding: 3rem 4rem; max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .draft-badge { background: #e5e7eb; color: #374151; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; display: inline-block; }
+        
+        .profile-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.5rem; background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-group input { padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); outline: none; transition: border 0.2s; }
+        .input-group input:focus { border-color: var(--black-btn); }
+        .input-group.full { grid-column: span 2; }
+
+        .input-bar { display: flex; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; margin-bottom: 3rem; box-shadow: var(--shadow-sm); transition: border 0.2s; }
+        .input-bar:focus-within { border-color: var(--black-btn); }
+        .input-bar input { flex: 1; border: none; padding: 0.5rem 1rem; outline: none; font-size: 0.95rem; }
+        .btn-add { background: var(--black-btn); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-add:hover { background: var(--black-hover); }
+
+        .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .node-list { display: flex; flex-direction: column; gap: 1rem; }
+        .node-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); animation: slideInUp 0.3s ease-out forwards; transition: 0.2s; }
+        .node-card.disabled { opacity: 0.5; background: #f9fafb; }
+        .node-icon { width: 44px; height: 44px; border-radius: 10px; background: #f3f4f6; object-fit: cover; padding: 2px; }
+        .node-info { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .node-info input { border: none; background: transparent; outline: none; width: 100%; text-overflow: ellipsis; }
+        .node-title-input { font-weight: 700; font-size: 1.05rem; color: var(--text-primary); }
+        .node-url-input { font-size: 0.85rem; color: var(--text-secondary); }
+        
+        .node-actions { display: flex; align-items: center; gap: 1rem; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 8px; border-radius: 6px; transition: 0.2s; display: flex; }
+        .btn-icon:hover { background: var(--danger-bg); color: var(--danger); }
+        
+        .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--black-btn); border-radius: 12px; cursor: pointer; transition: background 0.3s; }
+        .toggle-switch.off { background: #d1d5db; }
+        .toggle-knob { position: absolute; top: 2px; left: 22px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .toggle-switch.off .toggle-knob { left: 2px; }
+
+        /* 3. PREVIEW PANE */
+        .preview-pane { width: 450px; background: var(--bg-main); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .preview-header { width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 2rem; letter-spacing: 1px; }
+        
+        .phone-mockup { width: 340px; min-height: 700px; background: white; border: 14px solid #111827; border-radius: 45px; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); padding: 4rem 1.5rem 2rem 1.5rem; display: flex; flex-direction: column; align-items: center; }
+        .phone-mockup::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 130px; height: 28px; background: #111827; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px; z-index: 2;}
+
+        .profile-pic { width: 96px; height: 96px; border-radius: 24px; margin-bottom: 1rem; background: #e5e7eb; object-fit: cover; box-shadow: var(--shadow-sm); animation: fadeIn 0.5s; }
+        .profile-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; text-align: center; width: 100%; }
+        .profile-bio { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 2rem; text-align: center; width: 100%; line-height: 1.4; }
+
+        .phone-links-container { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+        .phone-link { display: flex; align-items: center; width: 100%; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; background: white; box-shadow: var(--shadow-sm); animation: slideInUp 0.3s ease-out forwards;}
+        .phone-link:hover { border-color: var(--black-btn); transform: scale(1.02); }
+        .phone-link img { width: 32px; height: 32px; border-radius: 8px; margin-right: 12px; object-fit: cover;}
+
+        /* === MOBILE LAYOUT OVERRIDES (Matches your exact image) === */
+        @media (max-width: 1024px) {
+            .desktop-only { display: none !important; }
+            .mobile-only { display: flex !important; }
+            
+            body { background-color: #f7f7f9; }
+            .app-layout { display: block; padding-bottom: 80px; } /* Room for bottom nav */
+            
+            /* Mobile Header */
+            .mobile-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: white; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; }
+            .mobile-logo { font-weight: 800; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
+            .mobile-avatar { width: 32px; height: 32px; background: #111827; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; }
+
+            /* Builder Area transforms into Mobile View */
+            .builder-area { padding: 2rem 1.5rem; width: 100%; background: #f7f7f9;}
+            
+            .mobile-hero { display: block; margin-bottom: 2rem; }
+            .mobile-hero h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+            .mobile-hero p { color: var(--text-secondary); font-size: 1.05rem; }
+
+            /* Add Link Form matches mobile image */
+            .input-bar { flex-direction: column; border: 1px solid var(--border-color); border-top: 4px solid var(--black-btn); border-radius: 0; padding: 1.5rem; background: white; box-shadow: none; margin-bottom: 2.5rem; }
+            .input-bar::before { content: '🔗 Add New Link'; font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; display: flex; }
+            .input-bar input { border: 1px solid var(--border-color); margin-bottom: 1rem; border-radius: 0; padding: 1rem; font-size: 1rem; }
+            .input-bar input:focus { border-color: var(--black-btn); }
+            .btn-add { padding: 1rem; border-radius: 0; width: 100%; display: flex; justify-content: center; gap: 8px; font-size: 1rem; }
+
+            /* Node List matches mobile image */
+            .section-title { font-size: 1.3rem; border-bottom: none; padding-bottom: 0; }
+            .node-list { gap: 0.5rem; }
+            .node-card { border-radius: 0; padding: 1rem; border: 1px solid var(--border-color); gap: 10px; }
+            .node-icon { width: 40px; height: 40px; border-radius: 8px; }
+            
+            /* Hide settings grid on mobile (simulated in tabs) */
+            .profile-settings { display: none; }
+            
+            .node-actions { gap: 8px; }
+            .divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 4px; }
+            
+            /* Deploy Button Mobile */
+            .mobile-deploy-btn { display: flex; width: 100%; padding: 1.2rem; background: var(--black-btn); color: white; border: none; justify-content: center; gap: 8px; font-weight: 700; font-size: 1rem; margin-top: 2rem; cursor: pointer; }
+
+            /* Bottom Nav */
+            .mobile-bottom-nav { display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px solid var(--border-color); position: fixed; bottom: 0; left: 0; width: 100%; padding-bottom: env(safe-area-inset-bottom); z-index: 100; }
+            .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 1rem 0; color: #9ca3af; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px; border-top: 3px solid transparent; }
+            .nav-tab.active { color: var(--black-btn); border-top-color: var(--black-btn); }
+        }
+
+        /* === PUBLIC VIEWER === */
+        #publicView { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 2rem; background: var(--bg-main); }
+        .public-container { width: 100%; max-width: 450px; background: white; padding: 3rem 2rem; border-radius: 32px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; align-items: center; animation: slideInUp 0.5s ease-out;}
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toastMsg">Action Successful</div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-box">
+            <h3 class="modal-title" id="modalTitle">Title</h3>
+            <p class="modal-desc" id="modalDesc">Description.</p>
+            <input type="text" class="modal-input" id="modalInput" style="display:none;">
+            
+            <div id="modalUrlResult" style="display:none; background:#f3f4f6; padding:1rem; border:1px dashed var(--border-color); word-break:break-all; font-family:monospace; font-size:0.85rem; margin-bottom:1.5rem; max-height:100px; overflow-y:auto; border-radius: 8px;"></div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" id="modalBtnCancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-confirm" id="modalBtnConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-layout" id="appLayout">
+        
+        <aside class="sidebar desktop-only">
+            <div class="sidebar-header">
+                <h2>BUILDER_MODE</h2>
+                <span>v3.0 - Hybrid UI</span>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item active">🔗 Links</div>
+                <div class="nav-item">Settings</div>
+            </div>
+            <button class="btn-import" onclick="promptImport()">IMPORT URL</button>
+        </aside>
+
+        <header class="mobile-header mobile-only">
+            <div class="mobile-logo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg>
+                LINKPORTAL
+            </div>
+            <div class="mobile-avatar">Me</div>
+        </header>
+
+        <main class="builder-area">
+            
+            <div class="top-header desktop-only">
+                <div>
+                    <div class="draft-badge" id="stateBadge">DRAFT</div>
+                    <h1 style="font-size: 1.8rem;" id="stateTitle">State Uncommitted</h1>
+                </div>
+                <button class="btn-confirm" onclick="generateURL()">GENERATE URL</button>
+            </div>
+
+            <div class="mobile-hero mobile-only">
+                <h1>Builder Mode</h1>
+                <p>Configure your decentralized node architecture.</p>
+            </div>
+            
+            <div class="profile-settings desktop-only">
+                <div class="input-group">
+                    <label>Profile Name</label>
+                    <input type="text" id="inputName" value="0xBuilder.eth" oninput="updateProfileState()">
+                </div>
+                <div class="input-group">
+                    <label>Avatar / Image URL</label>
+                    <input type="text" id="inputImage" placeholder="Leave empty for auto-avatar" oninput="updateProfileState()">
+                </div>
+                <div class="input-group full">
+                    <label>Bio / Description</label>
+                    <input type="text" id="inputBio" value="Architecting the decentralized web." oninput="updateProfileState()">
+                </div>
+            </div>
+
+            <form class="input-bar" id="addForm">
+                <input type="text" id="newTitle" placeholder="Node Title (e.g., My DAO)" required>
+                <input type="url" id="newUrl" placeholder="ipfs://... or https://..." required>
+                <button type="submit" class="btn-add">
+                    <span class="mobile-only" style="margin-right: 8px;">+</span> Append Node
+                </button>
+            </form>
+
+            <h3 class="section-title">
+                <svg class="mobile-only" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                Active Nodes
+            </h3>
+            
+            <div class="node-list" id="builderList">
+                </div>
+
+            <button class="mobile-deploy-btn mobile-only" onclick="generateURL()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13.5 2.5a4.5 4.5 0 0 1 6 6l-6-6zM3.5 14.5l5 5M5 21a2 2 0 0 1-2-2v-3.5l14-14a2 2 0 0 1 2.83 2.83l-14 14H5z"></path></svg>
+                DEPLOY PORTAL
+            </button>
+
+        </main>
+
+        <aside class="preview-pane desktop-only">
+            <div class="preview-header">
+                <span style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%; box-shadow: 0 0 8px #10b981;"></span>
+                LIVE PREVIEW
+            </div>
+            <div class="phone-mockup">
+                <img src="" class="profile-pic" id="phoneImage">
+                <div class="profile-name" id="phoneName"></div>
+                <div class="profile-bio" id="phoneBio"></div>
+                <div class="phone-links-container" id="phoneLinks"></div>
+            </div>
+        </aside>
+
+        <nav class="mobile-bottom-nav mobile-only">
+            <div class="nav-tab active">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                LINKS
+            </div>
+            <div class="nav-tab" onclick="promptImport()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                IMPORT
+            </div>
+            <div class="nav-tab">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                DATA
+            </div>
+            <div class="nav-tab">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                ACCOUNT
+            </div>
+        </nav>
+
+    </div>
+
+    <div id="publicView">
+        <div class="public-container">
+            <img src="" class="profile-pic" id="pubImage" style="width: 110px; height: 110px; border-radius: 30px;">
+            <h1 class="profile-name" id="pubName"></h1>
+            <p class="profile-bio" id="pubBio"></p>
+            <div class="phone-links-container" id="pubLinks" style="width: 100%;"></div>
+            
+            <div style="margin-top: 3rem; font-size: 0.8rem; color: var(--text-secondary);">
+                Built with <a href="?" onclick="window.location.href=window.location.origin+window.location.pathname; return false;" style="color: var(--primary-accent); text-decoration: none; font-weight: bold;">Web3 Link Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === APP STATE ===
+        let profile = {
+            name: "",
+            bio: "",
+            image: "",
+            links: [
+                // { id: "1", title: "Primary Portfolio", url: "https://portfolio.eth.link", active: true },
+                // { id: "2", title: "Mirror Blog", url: "https://mirror.xyz", active: true }
+            ]
+        };
+
+        const builderList = document.getElementById('builderList');
+        const phoneLinks = document.getElementById('phoneLinks');
+        const stateTitle = document.getElementById('stateTitle');
+
+        // === UI HELPERS ===
+        function showToast(msg) {
+            const toast = document.getElementById('toastMsg');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        let modalResolve = null;
+        function showModal(title, desc, inputMode = false, confirmText = "Confirm", copyData = null) {
+            return new Promise((resolve) => {
+                document.getElementById('customModal').style.display = 'flex';
+                document.getElementById('modalTitle').innerText = title;
+                document.getElementById('modalDesc').innerHTML = desc; 
+                
+                const input = document.getElementById('modalInput');
+                const resultBox = document.getElementById('modalUrlResult');
+                const confirmBtn = document.getElementById('modalBtnConfirm');
+                const cancelBtn = document.getElementById('modalBtnCancel');
+
+                input.style.display = inputMode ? 'block' : 'none';
+                if (inputMode) { input.value = ''; input.focus(); }
+
+                if (copyData) {
+                    resultBox.style.display = 'block';
+                    resultBox.innerText = copyData;
+                    confirmBtn.innerText = confirmText;
+                    cancelBtn.innerText = "Close";
+                    
+                    confirmBtn.onclick = () => {
+                        navigator.clipboard.writeText(copyData).then(() => {
+                            confirmBtn.innerText = "✓ Copied!";
+                            confirmBtn.style.background = "var(--success)";
+                            setTimeout(() => { document.getElementById('customModal').style.display = 'none'; resolve(true); }, 1000);
+                        });
+                    };
+                } else {
+                    resultBox.style.display = 'none';
+                    confirmBtn.innerText = confirmText;
+                    cancelBtn.innerText = "Cancel";
+                    confirmBtn.onclick = () => {
+                        document.getElementById('customModal').style.display = 'none';
+                        resolve(inputMode ? input.value : true);
+                    };
+                }
+
+                confirmBtn.style.background = "var(--black-btn)";
+                modalResolve = resolve;
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').style.display = 'none';
+            if (modalResolve) modalResolve(null);
+        }
+
+        // === INITIALIZATION ===
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('data');
+
+        if (encodedData) {
+            try {
+                const decoded = JSON.parse(decodeURIComponent(atob(encodedData)));
+                if (Array.isArray(decoded)) profile.links = decoded; else profile = { ...profile, ...decoded };
+                document.getElementById('appLayout').style.display = 'none';
+                document.getElementById('publicView').style.display = 'flex';
+                renderPublicView();
+            } catch (e) { initBuilder(); }
+        } else {
+            initBuilder();
+        }
+
+        function initBuilder() {
+            document.getElementById('inputName').value = profile.name || "";
+            document.getElementById('inputBio').value = profile.bio || "";
+            document.getElementById('inputImage').value = profile.image || "";
+            updateProfileState(); 
+        }
+
+        function getFavicon(urlStr) {
+            if(urlStr.includes('opensea') || urlStr.includes('nft')) return 'https://ui-avatars.com/api/?name=NFT&background=f3f4f6&color=6b7280';
+            try { return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(urlStr)}&size=128`; } catch (e) { return ""; }
+        }
+
+        function updateProfileState() {
+            profile.name = document.getElementById('inputName').value;
+            profile.bio = document.getElementById('inputBio').value;
+            profile.image = document.getElementById('inputImage').value;
+            
+            const imgUrl = profile.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || "U")}&background=111827&color=fff&size=200&bold=true`;
+            document.getElementById('phoneName').innerText = profile.name;
+            document.getElementById('phoneBio').innerText = profile.bio;
+            document.getElementById('phoneImage').src = imgUrl;
+            
+            stateTitle.innerText = "State Uncommitted";
+            document.getElementById('stateBadge').style.background = "#fee2e2";
+            document.getElementById('stateBadge').style.color = "#991b1b";
+            renderBuilder();
+        }
+
+        // === CRUD ACTIONS ===
+        document.getElementById('addForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let url = document.getElementById('newUrl').value;
+            if (!url.startsWith('http') && !url.startsWith('ipfs://')) url = 'https://' + url;
+            
+            profile.links.unshift({ id: Date.now().toString(), title: document.getElementById('newTitle').value, url: url, active: true });
+            document.getElementById('newTitle').value = ''; document.getElementById('newUrl').value = '';
+            
+            updateProfileState();
+            showToast("Node Appended");
+        });
+
+        function deleteLink(id) {
+            profile.links = profile.links.filter(l => l.id !== id);
+            updateProfileState();
+            showToast("Node Deleted");
+        }
+
+        function updateLink(id, field, value) {
+            const link = profile.links.find(l => l.id === id);
+            if (link) link[field] = value;
+            updateProfileState();
+        }
+
+        function toggleLink(id) {
+            const link = profile.links.find(l => l.id === id);
+            if (link) link.active = !link.active;
+            updateProfileState();
+        }
+
+        async function triggerMobileEdit(id) {
+            const link = profile.links.find(l => l.id === id);
+            if(link) {
+                const newTitle = await showModal("Edit Node", "Enter a new title for this node:", true, "Save");
+                if(newTitle) { updateLink(id, 'title', newTitle); showToast("Node Updated"); }
+            }
+        }
+
+        // === RENDER ENGINE ===
+        function renderBuilder() {
+            builderList.innerHTML = '';
+            phoneLinks.innerHTML = '';
+
+            profile.links.forEach((link, index) => {
+                const card = document.createElement('div');
+                card.className = `node-card ${link.active ? '' : 'disabled'}`;
+                
+                // This single HTML structure uses CSS to show/hide controls based on Desktop vs Mobile
+                card.innerHTML = `
+                    <img src="${getFavicon(link.url)}" class="node-icon" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(link.title)}&background=f3f4f6&color=6b7280'">
+                    <div class="node-info">
+                        <input type="text" class="node-title-input" value="${link.title}" onblur="updateLink('${link.id}', 'title', this.value)">
+                        <input type="url" class="node-url-input" value="${link.url}" onblur="updateLink('${link.id}', 'url', this.value)">
+                    </div>
+                    <div class="node-actions">
+                        <div class="toggle-switch mobile-only ${link.active ? '' : 'off'}" onclick="toggleLink('${link.id}')"><div class="toggle-knob"></div></div>
+                        <div class="divider mobile-only"></div>
+                        <button class="btn-icon mobile-only" onclick="triggerMobileEdit('${link.id}')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        
+                        <button class="btn-icon" onclick="deleteLink('${link.id}')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                        
+                        <div class="toggle-switch desktop-only ${link.active ? '' : 'off'}" onclick="toggleLink('${link.id}')"><div class="toggle-knob"></div></div>
+                    </div>
+                `;
+                builderList.appendChild(card);
+
+                // Desktop Phone Preview Links
+                if (link.active) {
+                    const btn = document.createElement('a');
+                    btn.className = 'phone-link'; btn.href = link.url; btn.target = "_blank";
+                    btn.innerHTML = `<img src="${getFavicon(link.url)}" onerror="this.style.display='none'"> <span>${link.title}</span>`;
+                    phoneLinks.appendChild(btn);
+                }
+            });
+        }
+
+        async function generateURL() {
+            if (profile.links.length === 0) return showToast("Add a node first");
+            const encoded = btoa(encodeURIComponent(JSON.stringify(profile)));
+            const finalUrl = window.location.origin + window.location.pathname + '?data=' + encoded;
+            
+            stateTitle.innerText = "State Committed";
+            document.getElementById('stateBadge').style.background = "#dcfce7";
+            document.getElementById('stateBadge').style.color = "#166534";
+
+            await showModal("Portal Deployed 🚀", "Your decentralized node architecture is compiled. Copy your link below:", false, "📋 Copy Link", finalUrl);
+        }
+
+        async function promptImport() {
+            const pastedUrl = await showModal("Import Existing Data", "Paste your previously generated long URL here.", true, "Load Data");
+            if (pastedUrl) {
+                try {
+                    const data = new URL(pastedUrl).searchParams.get('data');
+                    const decoded = JSON.parse(decodeURIComponent(atob(data)));
+                    if (Array.isArray(decoded)) profile.links = decoded; else profile = { ...profile, ...decoded };
+                    initBuilder();
+                    showToast("Data Loaded");
+                } catch(e) { showToast("Invalid URL"); }
+            }
+        }
+
+        function renderPublicView() {
+            document.getElementById('pubName').innerText = profile.name;
+            document.getElementById('pubBio').innerText = profile.bio;
+            document.getElementById('pubImage').src = profile.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=111827&color=fff&size=200&bold=true`;
+            const pLinks = document.getElementById('pubLinks');
+            profile.links.forEach((link, index) => {
+                if(link.active) {
+                    const a = document.createElement('a'); a.className = 'phone-link'; a.href = link.url; a.target = '_blank';
+                    a.style.animationDelay = `${index * 0.1}s`;
+                    a.innerHTML = `<img src="${getFavicon(link.url)}" onerror="this.style.display='none'"> <span>${link.title}</span>`;
+                    pLinks.appendChild(a);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

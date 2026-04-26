@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Link Dock Builder</title>
+    
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+
+    <div class="toast" id="toastMsg"><i class="ph ph-check-circle"></i> Success</div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle"><i class="ph ph-link"></i> Append Node</h3>
+                <button class="close-btn" onclick="closeModal()"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div id="modalInputs">
+                <input type="text" class="modal-input" id="nodeTitle" placeholder="Node Title (e.g. My DAO)">
+                <input type="url" class="modal-input" id="nodeUrl" placeholder="ipfs://... or https://...">
+            </div>
+
+            <div id="modalUrlResult" style="display:none; background:var(--bg-main); padding:1rem; border:1px dashed var(--border-color); word-break:break-all; font-family:monospace; font-size:0.85rem; margin-bottom:1.5rem; border-radius:var(--radius-sm); color:var(--primary-accent);"></div>
+
+            <div id="modalActionSheet" style="display:none; flex-direction:column; gap:10px; margin-bottom: 1.5rem;"></div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-confirm" id="modalBtnConfirm"><i class="ph ph-plus"></i> Save Node</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="mobile-fab mobile-only" onclick="openModal('add')" title="Append Node">
+        <i class="ph ph-plus" style="font-weight: bold;"></i>
+    </button>
+
+    <div class="app-layout" id="appLayout">
+        
+        <aside class="sidebar desktop-only">
+            <div class="sidebar-header"><i class="fa-solid fa-anchor" style="color:var(--primary-accent);"></i> LINK DOCK</div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard</a>
+                <a href="settings.html" class="nav-item"><i class="ph ph-gear"></i> Settings</a>
+                <a href="about.html" class="nav-item"><i class="ph ph-info"></i> About</a>
+            </div>
+            <button class="btn-import" onclick="openModal('import')"><i class="ph ph-download-simple"></i> IMPORT DATA</button>
+        </aside>
+
+        <header class="mobile-header mobile-only">
+            <div class="mobile-logo"><i class="fa-solid fa-anchor" style="color:var(--primary-accent);"></i> LINK DOCK</div>
+            <button class="btn-confirm" style="padding: 0.5rem 1rem; width: auto; border-radius: 20px; font-size: 0.85rem;" onclick="generatePortal()">
+                <i class="ri-rocket-fill"></i> Deploy
+            </button>
+        </header>
+
+        <main class="builder-area">
+            
+            <div class="top-header desktop-only">
+                <div>
+                    <div class="draft-badge" id="stateBadge">DRAFT</div>
+                    <h1 style="font-size: 1.8rem; font-weight: 800;">State Uncommitted</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-toggle-preview" id="togglePreviewBtn" onclick="togglePreviewState()">
+                        <i class="ph ph-eye-slash"></i> Hide Preview
+                    </button>
+                    <button class="desktop-deploy-btn" style="width: auto; padding: 0.8rem 1.5rem;" onclick="generatePortal()">
+                        <i class="ri-rocket-fill"></i> GENERATE URL
+                    </button>
+                </div>
+            </div>
+
+            <div class="mobile-hero mobile-only">
+                <h1>Builder Mode</h1>
+                <p>Configure your decentralized architecture.</p>
+            </div>
+            
+            <div class="profile-settings">
+                <div class="input-group">
+                    <label>Profile Name</label>
+                    <input type="text" id="inputName" oninput="updateProfileState()">
+                </div>
+                <div class="input-group">
+                    <label>Avatar URL</label>
+                    <input type="text" id="inputImage" placeholder="Leave empty for auto" oninput="updateProfileState()">
+                </div>
+                <div class="input-group full">
+                    <label>Bio</label>
+                    <input type="text" id="inputBio" oninput="updateProfileState()">
+                </div>
+            </div>
+
+            <div class="input-bar desktop-only" onclick="openModal('add')">
+                <span style="color: var(--text-muted); display:flex; align-items:center; gap:8px;"><i class="ph ph-plus"></i> Click here to append new node...</span>
+            </div>
+
+            <h3 class="section-title">
+                <i class="ph ph-share-network" style="color:var(--text-secondary);"></i>
+                Active Nodes
+            </h3>
+            
+            <div class="node-list" id="builderList"></div>
+
+        </main>
+
+        <aside class="preview-pane desktop-only">
+            <div class="preview-header">
+                <span style="display:inline-block; width:8px; height:8px; background:var(--success); border-radius:50%; box-shadow: 0 0 10px var(--success);"></span>
+                LIVE PREVIEW
+            </div>
+            <div class="phone-mockup">
+                <img src="" class="profile-pic" id="phoneImage">
+                <div class="profile-name" id="phoneName"></div>
+                <div class="profile-bio" id="phoneBio"></div>
+                <div style="width: 100%; display: flex; flex-direction: column;" id="phoneLinks"></div>
+            </div>
+        </aside>
+
+        <nav class="mobile-bottom-nav mobile-only">
+            <a href="index.html" class="nav-tab active"><i class="ph ph-squares-four" style="font-size: 1.4rem;"></i> HOME</a>
+            <a href="#" class="nav-tab" onclick="openModal('import')"><i class="ph ph-download-simple" style="font-size: 1.4rem;"></i> IMPORT</a>
+            <a href="settings.html" class="nav-tab"><i class="ph ph-gear" style="font-size: 1.4rem;"></i> STYLE</a>
+            <a href="about.html" class="nav-tab"><i class="ph ph-info" style="font-size: 1.4rem;"></i> ABOUT</a>
+        </nav>
+
+    </div>
+</body>
+</html>

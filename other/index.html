@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All-in-One Link Profile</title>
+    <style>
+        /* === MODERN CSS VARIABLES === */
+        :root {
+            --bg: #09090b;
+            --surface: #18181b;
+            --surface-hover: #27272a;
+            --border: #3f3f46;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        /* === SHARED STYLES === */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; text-align: center; }
+        p.subtitle { color: var(--text-muted); text-align: center; margin-bottom: 2rem; font-size: 0.9rem; }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+        input:focus { border-color: var(--primary); }
+
+        /* Highlighted Title Input */
+        .title-input-group {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .title-input-group input {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0;
+            border-color: transparent;
+            background: rgba(0,0,0,0.2);
+        }
+        .title-input-group input:focus { border-color: var(--primary); }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: var(--primary-hover); }
+
+        /* === BUILDER VIEW STYLES === */
+        .import-section {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px dashed var(--primary);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .link-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        
+        .edit-card {
+            display: flex;
+            gap: 1rem;
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .edit-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: white;
+            padding: 4px;
+            object-fit: cover;
+        }
+
+        .edit-inputs { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+        .edit-inputs input { margin: 0; padding: 8px; font-size: 0.9rem; }
+        
+        .btn-delete { background: transparent; color: var(--danger); width: auto; padding: 8px; }
+        .btn-delete:hover { background: rgba(239, 68, 68, 0.1); }
+
+        .result-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        /* === PUBLIC VIEWER STYLES === */
+        .profile-avatar {
+            width: 96px; height: 96px;
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem auto;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: bold;
+        }
+
+        .big-link {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 1rem;
+            background: var(--surface-hover);
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, border 0.2s;
+        }
+        .big-link:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            background: var(--border);
+        }
+
+        .big-link img {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background: white;
+            padding: 4px;
+            margin-right: 1rem;
+            object-fit: cover;
+        }
+
+        .big-link span {
+            flex: 1;
+            text-align: center;
+            padding-right: 36px;
+        }
+
+        .footer-credit {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .footer-credit a { color: var(--primary); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="builderView">
+        <h1>Profile Builder</h1>
+        <p class="subtitle">Customize your page title and add your links.</p>
+
+        <div class="import-section">
+            <h3 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Edit Existing Profile</h3>
+            <input type="text" id="importInput" placeholder="Paste your generated URL here...">
+            <button onclick="importLinks()" style="background: var(--surface-hover); border: 1px solid var(--border);">Load Profile</button>
+        </div>
+
+        <div class="title-input-group">
+            <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Your Page Title</label>
+            <input type="text" id="pageTitleInput" placeholder="My Links" value="My Links">
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <input type="text" id="newTitle" placeholder="Link Title (e.g., My specific blog post)">
+            <input type="url" id="newUrl" placeholder="https://...">
+            <button onclick="addLink()">+ Add Link</button>
+        </div>
+
+        <div class="link-list" id="builderList"></div>
+
+        <button onclick="generateSingleURL()" style="padding: 16px; font-size: 1.1rem;">Generate My Single Link</button>
+        <div class="result-box" id="resultUrl"></div>
+    </div>
+
+    <div class="container" id="publicView" style="background: transparent; border: none; box-shadow: none;">
+        <div class="profile-avatar">@</div>
+        
+        <h1 id="publicTitle">My Links</h1> 
+        <p class="subtitle">Check out my content below</p>
+        
+        <div id="publicLinksList"></div>
+
+        <div class="footer-credit">
+            Powered by <a href="?" onclick="window.location.href=window.location.origin+window.location.pathname; return false;">All-In-One Builder</a>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        let pageTitle = "My Links";
+        let links = [];
+
+        // Elements
+        const builderView = document.getElementById('builderView');
+        const publicView = document.getElementById('publicView');
+        const builderList = document.getElementById('builderList');
+        const publicLinksList = document.getElementById('publicLinksList');
+        const resultUrlBox = document.getElementById('resultUrl');
+        const pageTitleInput = document.getElementById('pageTitleInput');
+        const publicTitleDisplay = document.getElementById('publicTitle');
+
+        // --- HELPER: GET EXACT PAGE ICON ---
+        function getLogoUrl(urlStr) {
+            try { return `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(urlStr)}&size=128`; } 
+            catch (e) { return ""; }
+        }
+
+        // --- HELPER: LETTER AVATAR FALLBACK ---
+        function getFallbackAvatar(title) {
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(title)}&background=random&color=fff&size=128&bold=true`;
+        }
+
+        // --- CORE LOGIC: Encoding & Decoding Data ---
+        function encodeData(data) {
+            return btoa(encodeURIComponent(JSON.stringify(data)));
+        }
+        
+        function decodeData(encodedString) {
+            try { return JSON.parse(decodeURIComponent(atob(encodedString))); } 
+            catch (e) { return null; }
+        }
+
+        // --- APP INITIALIZATION ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlData = urlParams.get('data');
+
+        if (urlData) {
+            const decoded = decodeData(urlData);
+            if (decoded) {
+                // Backwards Compatibility Check: Was it an array (old version) or object (new version)?
+                if (Array.isArray(decoded)) {
+                    links = decoded;
+                    pageTitle = "My Links";
+                } else {
+                    links = decoded.links || [];
+                    pageTitle = decoded.pageTitle || "My Links";
+                }
+
+                if (links.length > 0) {
+                    publicView.style.display = 'block';
+                    publicTitleDisplay.innerText = pageTitle; // Set custom title in viewer
+                    renderPublicLinks(links);
+                } else {
+                    showBuilder();
+                }
+            } else { showBuilder(); }
+        } else {
+            showBuilder();
+        }
+
+        function showBuilder() {
+            builderView.style.display = 'block';
+            pageTitleInput.value = pageTitle; // Set initial input value
+            renderBuilderLinks();
+        }
+
+        // --- BUILDER FUNCTIONS ---
+        function addLink() {
+            const titleInput = document.getElementById('newTitle');
+            const urlInput = document.getElementById('newUrl');
+            if (!titleInput.value || !urlInput.value) return alert("Fill out both fields!");
+
+            let finalUrl = urlInput.value;
+            if (!finalUrl.startsWith('http')) finalUrl = 'https://' + finalUrl;
+
+            links.push({ id: Date.now().toString(), title: titleInput.value, url: finalUrl });
+            titleInput.value = ''; urlInput.value = '';
+            renderBuilderLinks();
+        }
+
+        function deleteLink(id) {
+            links = links.filter(l => l.id !== id);
+            renderBuilderLinks();
+        }
+
+        function updateLink(id, field, value) {
+            const link = links.find(l => l.id === id);
+            if (link) { link[field] = value; if (field === 'url' || field === 'title') renderBuilderLinks(); }
+        }
+
+        function renderBuilderLinks() {
+            builderList.innerHTML = '';
+            links.forEach(link => {
+                const div = document.createElement('div');
+                div.className = 'edit-card';
+                div.innerHTML = `
+                    <img src="${getLogoUrl(link.url)}" class="edit-icon" alt="logo" onerror="this.onerror=null; this.src='${getFallbackAvatar(link.title)}';">
+                    <div class="edit-inputs">
+                        <input type="text" value="${link.title}" onchange="updateLink('${link.id}', 'title', this.value)">
+                        <input type="url" value="${link.url}" onblur="updateLink('${link.id}', 'url', this.value)">
+                    </div>
+                    <button class="btn-delete" onclick="deleteLink('${link.id}')">X</button>
+                `;
+                builderList.appendChild(div);
+            });
+            resultUrlBox.style.display = 'none';
+        }
+
+        function generateSingleURL() {
+            if (links.length === 0) return alert("Add some links first!");
+            
+            // Get the title from the input box, default to "My Links" if empty
+            pageTitle = pageTitleInput.value.trim() || "My Links";
+
+            // Package the title and links into one object
+            const payload = {
+                pageTitle: pageTitle,
+                links: links
+            };
+            
+            const encoded = encodeData(payload);
+            const baseUrl = window.location.origin + window.location.pathname;
+            const finalShareUrl = baseUrl + '?data=' + encoded;
+
+            resultUrlBox.style.display = 'block';
+            resultUrlBox.innerHTML = `<strong>Your Link is ready! Copy it:</strong><br><br><a href="${finalShareUrl}" target="_blank" style="color:var(--primary)">${finalShareUrl}</a>`;
+        }
+
+        function importLinks() {
+            const importInput = document.getElementById('importInput').value;
+            try {
+                const url = new URL(importInput);
+                const params = new URLSearchParams(url.search);
+                const pastedData = params.get('data');
+                
+                if (pastedData) {
+                    const decoded = decodeData(pastedData);
+                    if (decoded) {
+                        if (Array.isArray(decoded)) {
+                            links = decoded;
+                            pageTitle = "My Links";
+                        } else {
+                            links = decoded.links || [];
+                            pageTitle = decoded.pageTitle || "My Links";
+                        }
+                        
+                        pageTitleInput.value = pageTitle; // Update UI title
+                        renderBuilderLinks();
+                        alert("Profile loaded successfully! You can now edit it.");
+                        document.getElementById('importInput').value = '';
+                    }
+                } else { alert("No valid data found in that URL."); }
+            } catch (e) { alert("Invalid URL format."); }
+        }
+
+        // --- PUBLIC VIEWER FUNCTIONS ---
+        function renderPublicLinks(linkData) {
+            publicLinksList.innerHTML = '';
+            linkData.forEach(link => {
+                const a = document.createElement('a');
+                a.className = 'big-link';
+                a.href = link.url;
+                a.target = '_blank';
+                a.innerHTML = `
+                    <img src="${getLogoUrl(link.url)}" alt="logo" onerror="this.onerror=null; this.src='${getFallbackAvatar(link.title)}';">
+                    <span>${link.title}</span>
+                `;
+                publicLinksList.appendChild(a);
+            });
+        }
+    </script>
+</body>
+</html>
